@@ -10,18 +10,20 @@ export async function GET() {
     return NextResponse.json({ message: '尚無報名資料' }, { status: 404 });
   }
 
-  const workbook = XLSX.utils.book_new();
-  
-  // Directly convert the raw sheet object array to an Excel sheet
-  const worksheet = XLSX.utils.json_to_sheet(registrations);
-  XLSX.utils.book_append_sheet(workbook, worksheet, '使用者選擇結果');
+  try {
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(registrations);
+    XLSX.utils.book_append_sheet(workbook, worksheet, '使用者選擇結果');
 
-  const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
 
-  return new NextResponse(buffer, {
-    headers: {
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'Content-Disposition': 'attachment; filename="醫師公會職域活化_報名資料.xlsx"',
-    },
-  });
+    return new NextResponse(buffer, {
+      headers: {
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent("醫師公會職域活化_報名資料.xlsx")}`,
+      },
+    });
+  } catch (error: any) {
+    return NextResponse.json({ message: 'Excel 匯出發生錯誤', error: error.message }, { status: 500 });
+  }
 }

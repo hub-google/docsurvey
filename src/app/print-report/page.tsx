@@ -50,8 +50,9 @@ export default async function PrintReportPage() {
             </h2>
             
             {officeRegs.map((reg, rIdx) => {
-              const convener = memberData.find(m => m.業務員代碼 === reg.總召業務員代碼);
-              const convenerText = convener ? `${convener.姓名} (${convener.職級})` : reg.總召業務員代碼;
+              const convenerCode = String(reg.總召業務員代碼 || '').trim();
+              const convener = memberData.find(m => String(m.業務員代碼) === convenerCode);
+              const convenerText = convener ? `${convener.姓名} (${convener.職級})` : convenerCode;
               
               // Resolve teams based on comma-separated code string
               const teamCodes = String(reg.團隊成員業務員代碼 || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -60,34 +61,38 @@ export default async function PrintReportPage() {
                   return m ? `${m.姓名} (${m.職級})` : code;
               }).join('、');
 
+              // Extract time handling potential weird keys
+              const timestampRaw = reg['選擇時間(YYYY/MM/DD HH:mm:SS)'] || reg.選擇時間 || '';
+              const timeDisplay = timestampRaw ? new Date(timestampRaw).toLocaleString() : '無紀錄';
+
               return (
                 <div key={rIdx} style={{ marginBottom: '3rem', pageBreakInside: 'avoid' }}>
                   <div style={{ background: '#f8fafc', padding: '10px', borderLeft: '4px solid #3b82f6', marginBottom: '1rem' }}>
-                    <strong>申報人：</strong> {reg.姓名} ({reg.業務員代碼})
-                    <span style={{ float: 'right', color: '#64748b' }}>最後修改: {new Date(reg.選擇時間).toLocaleString()}</span>
+                    <strong>填寫者：</strong> {reg.姓名} ({reg.業務員代碼})
+                    <span style={{ float: 'right', color: '#64748b' }}>最後修改: {timeDisplay}</span>
                   </div>
                   
                   <table className="report-table">
                     <tbody>
                       <tr>
                         <th>包序號</th>
-                        <td>{reg.包序號}</td>
+                        <td>{String(reg.包序號 || '')}</td>
                       </tr>
                       <tr>
                         <th>志願序</th>
-                        <td>{reg.志願序}</td>
+                        <td>{String(reg.志願序 || '')}</td>
                       </tr>
                       <tr>
                         <th>推動規劃</th>
-                        <td><div style={{ whiteSpace: 'pre-wrap' }}>{reg.推動規劃}</div></td>
+                        <td><div style={{ whiteSpace: 'pre-wrap' }}>{String(reg.推動規劃 || '')}</div></td>
                       </tr>
                       <tr>
                         <th>人員經營管理及跟催機制</th>
-                        <td><div style={{ whiteSpace: 'pre-wrap' }}>{reg.人員經營管理及跟催機制}</div></td>
+                        <td><div style={{ whiteSpace: 'pre-wrap' }}>{String(reg.人員經營管理及跟催機制 || '')}</div></td>
                       </tr>
                       <tr>
                         <th>經營目標</th>
-                        <td><div style={{ whiteSpace: 'pre-wrap' }}>{reg.經營目標}</div></td>
+                        <td><div style={{ whiteSpace: 'pre-wrap' }}>{String(reg.經營目標 || '')}</div></td>
                       </tr>
                       <tr>
                         <th>總召</th>
