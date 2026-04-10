@@ -76,6 +76,15 @@ export default function LoginPage() {
             {loading ? '登入中...' : '進入系統'}
           </button>
         </form>
+
+        <div style={{ marginTop: '2rem', textAlign: 'center', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
+          <button 
+            onClick={() => router.push('/admin')}
+            style={{ background: 'transparent', color: 'var(--text-muted)', fontSize: '0.875rem', textDecoration: 'underline' }}
+          >
+            管理員登入 / 進入管理後台
+          </button>
+        </div>
       </div>
     </div>
   );
