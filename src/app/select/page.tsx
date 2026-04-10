@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -25,6 +27,25 @@ export default function SelectionPage() {
       })
       .catch(() => router.push('/login'));
   }, [router]);
+
+  // Group packages by 包序號
+  const getGroupedPackages = () => {
+    if (!data?.packages) return [];
+    return data.packages.reduce((acc: any[], current: any) => {
+      const existing = acc.find(p => p.包序號 === current.包序號);
+      if (!existing) {
+        acc.push({ 
+          ...current, 
+          items: [current] 
+        });
+      } else {
+        existing.items.push(current);
+      }
+      return acc;
+    }, []);
+  };
+
+  const groupedPackages = getGroupedPackages();
 
   const togglePackage = (id: number) => {
     if (selectedIds.includes(id)) {
@@ -68,7 +89,6 @@ export default function SelectionPage() {
 
     const submissionData = selectedIds.map(id => selections[id]);
     
-    // Check if priorities are filled and unique
     const priorities = submissionData.map(s => parseInt(s.priority));
     if (priorities.some(p => isNaN(p))) {
       setError('請為勾選的項目選擇志願序');
@@ -128,7 +148,7 @@ export default function SelectionPage() {
               </tr>
             </thead>
             <tbody>
-              {data.packages.map((pkg: any) => (
+              {groupedPackages.map((pkg: any) => (
                 <tr key={pkg.包序號} style={{ borderBottom: '1px solid var(--glass-border)' }}>
                   <td style={{ padding: '1rem' }}>
                     <input 
@@ -138,7 +158,12 @@ export default function SelectionPage() {
                     />
                   </td>
                   <td style={{ padding: '1rem' }}>
-                    <a href="#" onClick={(e) => { e.preventDefault(); setModalPackage(pkg); }}>{pkg.包序號}</a>
+                    <button 
+                      onClick={() => setModalPackage(pkg)} 
+                      style={{ background: 'transparent', color: 'var(--primary)', textDecoration: 'underline', padding: 0, fontSize: 'inherit' }}
+                    >
+                      {pkg.包序號}
+                    </button>
                   </td>
                   <td style={{ padding: '1rem' }}>{pkg.建議經營團隊人數}</td>
                   <td style={{ padding: '1rem' }}>
@@ -170,62 +195,87 @@ export default function SelectionPage() {
                 項目包序號: {id} (志願序: {selections[id]?.priority || '未選'})
               </h4>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label>推動規劃</label>
-                  <textarea 
-                    rows={3} 
-                    value={selections[id].promoPlan} 
-                    onChange={e => updateSelection(id, 'promoPlan', e.target.value)}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label>人員經營管理及跟催機制</label>
-                  <textarea 
-                    rows={3} 
-                    value={selections[id].mgmtMechanism} 
-                    onChange={e => updateSelection(id, 'mgmtMechanism', e.target.value)}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label>經營目標</label>
-                  <textarea 
-                    rows={3} 
-                    value={selections[id].target} 
-                    onChange={e => updateSelection(id, 'target', e.target.value)}
-                  />
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1.5rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', gridColumn: 'span 2' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <label>推動規劃</label>
+                      <textarea 
+                        rows={3} 
+                        value={selections[id].promoPlan} 
+                        onChange={e => updateSelection(id, 'promoPlan', e.target.value)}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <label>人員經營管理及跟催機制</label>
+                      <textarea 
+                        rows={3} 
+                        value={selections[id].mgmtMechanism} 
+                        onChange={e => updateSelection(id, 'mgmtMechanism', e.target.value)}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <label>經營目標</label>
+                      <textarea 
+                        rows={3} 
+                        value={selections[id].target} 
+                        onChange={e => updateSelection(id, 'target', e.target.value)}
+                      />
+                    </div>
+                  </div>
                 </div>
                 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <label>總召 (限通訊處同仁)</label>
-                    <select 
-                      value={selections[id].convener} 
-                      onChange={e => updateSelection(id, 'convener', e.target.value)}
-                    >
-                      <option value="">選擇總召</option>
-                      {data.members.map((m: any) => (
-                        <option key={m.業務員代碼} value={m.業務員代碼}>{m.姓名} ({m.職級})</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <label>團隊成員 (複選)</label>
-                    <select 
-                      multiple 
-                      style={{ height: '100px' }}
-                      value={selections[id].teamMembers}
-                      onChange={e => {
-                        const values = Array.from(e.target.selectedOptions, option => option.value);
-                        updateSelection(id, 'teamMembers', values);
-                      }}
-                    >
-                      {data.members.map((m: any) => (
-                        <option key={m.業務員代碼} value={m.業務員代碼}>{m.姓名} ({m.職級})</option>
-                      ))}
-                    </select>
-                    <small style={{ color: 'var(--text-muted)' }}>Ctrl+點選 可多選</small>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <label>總召 (限通訊處同仁)</label>
+                  <select 
+                    value={selections[id].convener} 
+                    onChange={e => updateSelection(id, 'convener', e.target.value)}
+                    style={{ width: '100%' }}
+                  >
+                    <option value="">選擇總召</option>
+                    {data.members.map((m: any) => (
+                      <option key={m.業務員代碼} value={m.業務員代碼}>{m.姓名} ({m.職級})</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <label>團隊成員 (複選 - 直接勾選)</label>
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', 
+                    gap: '0.5rem', 
+                    maxHeight: '180px', 
+                    overflowY: 'auto',
+                    padding: '1rem',
+                    background: 'rgba(0,0,0,0.2)',
+                    borderRadius: '8px',
+                    border: '1px solid var(--glass-border)'
+                  }}>
+                    {data.members.map((m: any) => (
+                      <label key={m.業務員代碼} style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '0.5rem', 
+                        cursor: 'pointer',
+                        padding: '4px',
+                        borderRadius: '4px',
+                        fontSize: '0.85rem'
+                      }}>
+                        <input 
+                          type="checkbox" 
+                          checked={selections[id].teamMembers.includes(m.業務員代碼)}
+                          onChange={e => {
+                            const currentMembers = selections[id].teamMembers;
+                            const newMembers = e.target.checked 
+                              ? [...currentMembers, m.業務員代碼]
+                              : currentMembers.filter((code: string) => code !== m.業務員代碼);
+                            updateSelection(id, 'teamMembers', newMembers);
+                          }}
+                        />
+                        <span>{m.姓名}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -249,23 +299,43 @@ export default function SelectionPage() {
       {modalPackage && (
         <div className="modal-overlay" onClick={() => setModalPackage(null)}>
           <div className="modal-content glass" onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-              <h3>項目詳情: {modalPackage.包序號}</h3>
-              <button onClick={() => setModalPackage(null)} style={{ background: 'transparent', color: 'white', fontSize: '1.5rem' }}>&times;</button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'center' }}>
+              <h3>包序號 {modalPackage.包序號} - 職域詳情</h3>
+              <button 
+                onClick={() => setModalPackage(null)} 
+                style={{ background: 'transparent', color: 'white', fontSize: '2rem', lineHeight: 1, padding: '0 0.5rem' }}
+              >
+                &times;
+              </button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '1rem' }}>
-              {Object.entries(modalPackage).map(([key, value]) => {
-                  const labelIndex = Object.keys(modalPackage).indexOf(key);
-                  // The user said "分頁上秀出這個包序號中，sheet'分包資料'上D欄以後的所有資料"
-                  // Assuming column D starts after some specific index. D is 4th column.
-                  if (labelIndex < 3) return null; 
-                  return (
-                    <div key={key} style={{ display: 'contents' }}>
-                      <div style={{ fontWeight: 600, color: 'var(--primary)' }}>{key}:</div>
-                      <div>{String(value)}</div>
-                    </div>
-                  );
-              })}
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                <thead>
+                  <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--primary)', background: 'rgba(255,255,255,0.05)' }}>
+                    {Object.keys(modalPackage.items[0])
+                      .filter(key => key !== 'items' && key !== '可選擇的區域中心')
+                      .map(key => (
+                        <th key={key} style={{ padding: '0.75rem' }}>{key}</th>
+                      ))
+                    }
+                  </tr>
+                </thead>
+                <tbody>
+                  {modalPackage.items.map((item: any, idx: number) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                      {Object.keys(item)
+                        .filter(key => key !== 'items' && key !== '可選擇的區域中心')
+                        .map(key => (
+                          <td key={key} style={{ padding: '0.75rem' }}>{String(item[key])}</td>
+                        ))
+                      }
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div style={{ marginTop: '1.5rem', textAlign: 'right' }}>
+               <button className="btn-primary" onClick={() => setModalPackage(null)}>關閉詳情</button>
             </div>
           </div>
         </div>

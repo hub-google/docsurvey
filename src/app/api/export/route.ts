@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { getExcelData, Registration } from '@/lib/data';
 import * as XLSX from 'xlsx';

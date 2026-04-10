@@ -5,12 +5,7 @@ async function test() {
   try {
     const res = await fetch(`${GAS_URL}?action=getData&token=${SECRET_TOKEN}&_t=${Date.now()}`);
     const data = await res.json();
-    console.log("GAS Bridge Success!");
-    console.log("Login Rows:", data.loginData.length);
-    console.log("Login Rows Data:", JSON.stringify(data.loginData));
-    console.log("Package Rows:", data.packageData.length);
-    console.log("Member Rows:", data.memberData.length);
-    console.log("Registration Rows:", data.registrations.length);
+    console.log("Package Rows:", JSON.stringify(data.packageData, null, 2));
   } catch (e) {
     console.error("GAS Bridge Failed:", e);
   }
