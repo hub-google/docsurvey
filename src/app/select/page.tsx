@@ -312,16 +312,16 @@ export default function SelectionPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
                   <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--primary)', background: 'rgba(255,255,255,0.05)' }}>
-                    {Object.keys(modalPackage.items[0]).filter(key => key !== 'items' && key !== '可選擇的區域中心').map(key => (
-                      <th key={key} style={{ padding: '0.75rem' }}>{key}</th>
+                    {Object.keys(modalPackage.items[0]).filter(key => key !== 'items').slice(3).map(key => (
+                      <th key={key} style={{ padding: '0.75rem', whiteSpace: 'nowrap' }}>{key}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {modalPackage.items.map((it: any, i: number) => (
                     <tr key={i} style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                      {Object.keys(it).filter(key => key !== 'items' && key !== '可選擇的區域中心').map(k => (
-                        <td key={k} style={{ padding: '0.75rem' }}>{String(it[k])}</td>
+                      {Object.keys(it).filter(key => key !== 'items').slice(3).map(k => (
+                        <td key={k} style={{ padding: '0.75rem' }}>{String(it[k] || '')}</td>
                       ))}
                     </tr>
                   ))}

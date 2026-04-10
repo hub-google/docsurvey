@@ -73,7 +73,8 @@ export default function LoginPage() {
           <h1 style={{ color: 'var(--primary)' }}>管理後台</h1>
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button onClick={() => setMode('user')} className="btn-primary" style={{ background: '#475569' }}>回登入頁</button>
-            <button onClick={handleDownload} className="btn-primary" style={{ background: 'var(--accent)' }}>下載已填寫資料 (Excel)</button>
+            <button onClick={() => window.open('/print-report', '_blank')} className="btn-primary" style={{ background: '#059669' }}>下載 PDF 版</button>
+            <button onClick={handleDownload} className="btn-primary" style={{ background: 'var(--accent)' }}>打包 Excel 版</button>
           </div>
         </div>
 
