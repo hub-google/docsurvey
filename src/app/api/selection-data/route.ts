@@ -3,7 +3,7 @@ import { getExcelData } from '@/lib/data';
 import { getSession } from '@/lib/session';
 
 export async function GET() {
-  const user = getSession();
+  const user = await getSession();
   if (!user) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }

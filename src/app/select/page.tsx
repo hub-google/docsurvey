@@ -260,7 +260,7 @@ export default function SelectionPage() {
                   // Assuming column D starts after some specific index. D is 4th column.
                   if (labelIndex < 3) return null; 
                   return (
-                    <div key={key} style={{ contents: true }}>
+                    <div key={key} style={{ display: 'contents' }}>
                       <div style={{ fontWeight: 600, color: 'var(--primary)' }}>{key}:</div>
                       <div>{String(value)}</div>
                     </div>

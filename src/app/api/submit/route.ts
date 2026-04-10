@@ -3,7 +3,7 @@ import { saveRegistration, clearUserRegistrations } from '@/lib/data';
 import { getSession } from '@/lib/session';
 
 export async function POST(request: Request) {
-  const user = getSession();
+  const user = await getSession();
   if (!user) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
