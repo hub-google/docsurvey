@@ -1,4 +1,5 @@
 import { getExcelData, Registration } from '@/lib/data';
+import PrintButton from './PrintButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,12 +34,7 @@ export default async function PrintReportPage() {
       
       <div className="no-print" style={{ padding: '1rem', background: '#e5e7eb', textAlign: 'center', marginBottom: '2rem' }}>
         <p style={{ marginBottom: '1rem' }}>此頁面專為 PDF 列印設計。點擊下方按鈕後，請在印表機選擇「另存為 PDF」。</p>
-        <button 
-          onClick="window.print()" 
-          style={{ padding: '10px 20px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem' }}
-        >
-          開啟列印對話框 (另存為 PDF)
-        </button>
+        <PrintButton />
       </div>
 
       {offices.map((office, index) => {
