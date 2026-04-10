@@ -32,15 +32,6 @@ export async function POST(request: Request) {
     return response;
   } catch (error: any) {
     console.error('Login API error:', error);
-    
-    // Get some metadata about the key without showing the key itself
-    const pk = process.env.GOOGLE_PRIVATE_KEY || '';
-    const keyMeta = `Length: ${pk.length}, HasBegin: ${pk.includes('BEGIN')}, HasEnd: ${pk.includes('END')}, SlashN: ${(pk.match(/\\n/g)||[]).length}, RealN: ${(pk.match(/\n/g)||[]).length}`;
-
-    return NextResponse.json({ 
-      message: '伺服器內部錯誤 (Debug: ' + error.message + ')', 
-      detail: error.toString() + ' | Meta: ' + keyMeta,
-      stack: error.stack?.split('\n').slice(0, 3).join('\n')
-    }, { status: 500 });
+    return NextResponse.json({ message: '伺服器內部錯誤' }, { status: 500 });
   }
 }

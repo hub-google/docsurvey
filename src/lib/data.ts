@@ -1,4 +1,6 @@
-import { getGoogleSheetsClient, spreadsheetId } from './google';
+// Migration to GAS Bridge
+const GAS_URL = process.env.NEXT_PUBLIC_GAS_WEBAPP_URL || '';
+const SECRET_TOKEN = process.env.NEXT_PUBLIC_GAS_SECRET_TOKEN || 'Antigravity_2026';
 
 export interface User {
   業務員代碼: string;
@@ -37,164 +39,66 @@ export interface Registration {
 }
 
 /**
- * Fetches all source data from Google Sheets in one batch call
+ * Fetches all source data from Google Sheets via GAS Bridge
  */
 export async function getExcelData() {
-  const sheets = await getGoogleSheetsClient();
-  
-  // Batch get ranges
-  const response = await sheets.spreadsheets.values.batchGet({
-    spreadsheetId,
-    ranges: ['登入!A:E', '分包資料!A:Z', '成員選擇!A:F'],
+  const res = await fetch(`${GAS_URL}?action=getData&token=${SECRET_TOKEN}`, {
+    method: 'GET',
+    headers: { 'Cache-Control': 'no-cache' }
   });
-
-  const valueRanges = response.data.valueRanges || [];
   
-  const loginRows = valueRanges[0]?.values || [];
-  const packageRows = valueRanges[1]?.values || [];
-  const memberRows = valueRanges[2]?.values || [];
-
-  const parseRows = (rows: any[][]) => {
-    if (rows.length < 2) return [];
-    const headers = rows[0];
-    return rows.slice(1).map(row => {
-      const obj: any = {};
-      headers.forEach((header, index) => {
-        obj[header] = row[index];
-      });
-      return obj;
-    });
-  };
+  if (!res.ok) throw new Error('GAS Bridge Error: Failed to fetch data');
+  
+  const data = await res.json();
 
   return {
-    loginData: parseRows(loginRows) as User[],
-    packageData: parseRows(packageRows).map(p => ({ ...p, 包序號: parseInt(p.包序號), 建議經營團隊人數: parseInt(p.建議經營團隊人數) })) as Package[],
-    memberData: parseRows(memberRows) as Member[],
+    loginData: data.loginData as User[],
+    packageData: data.packageData.map((p: any) => ({ 
+      ...p, 
+      包序號: parseInt(p.包序號), 
+      建議經營團隊人數: parseInt(p.建議經營團隊人數) 
+    })) as Package[],
+    memberData: data.memberData as Member[],
   };
 }
 
 /**
- * Fetches registrations from the "報名結果" tab
- */
-export async function getRegistrations(): Promise<Registration[]> {
-  const sheets = await getGoogleSheetsClient();
-  
-  try {
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: '報名結果!A:K',
-    });
-
-    const rows = response.data.values;
-    if (!rows || rows.length < 2) return [];
-
-    const headers = rows[0];
-    return rows.slice(1).map(row => {
-      const obj: any = {};
-      headers.forEach((header, index) => {
-        if (header === '團隊成員業務員代碼') {
-            obj[header] = row[index] ? row[index].split(',') : [];
-        } else if (header === '包序號' || header === '志願序') {
-            obj[header] = parseInt(row[index]);
-        } else {
-            obj[header] = row[index];
-        }
-      });
-      return obj as Registration;
-    });
-  } catch (e) {
-    // If sheet doesn't exist, return empty
-    return [];
-  }
-}
-
-/**
- * Appends a registration to the Google Sheet
+ * Saves registrations via GAS Bridge
  */
 export async function saveRegistration(reg: Registration) {
-  const sheets = await getGoogleSheetsClient();
-
-  const values = [
-    [
-      reg.業務員代碼,
-      reg.通訊處,
-      reg.姓名,
-      reg.包序號,
-      reg.志願序,
-      reg.推動規劃,
-      reg.人員經營管理及跟催機制,
-      reg.經營目標,
-      reg.總召業務員代碼,
-      reg.團隊成員業務員代碼.join(','),
-      reg.選擇時間
-    ]
-  ];
-
-  // Try to append. If it fails (e.g. sheet doesn't exist), we might need to create it first.
-  try {
-    await sheets.spreadsheets.values.append({
-      spreadsheetId,
-      range: '報名結果!A1',
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values },
-    });
-  } catch (error: any) {
-    if (error.message.includes('not found')) {
-        // Create sheet and headers
-        await createResultsSheet(sheets);
-        await saveRegistration(reg); // Retry
-    } else {
-        throw error;
-    }
-  }
-}
-
-async function createResultsSheet(sheets: any) {
-    await sheets.spreadsheets.batchUpdate({
-        spreadsheetId,
-        requestBody: {
-            requests: [
-                {
-                    addSheet: {
-                        properties: { title: '報名結果' }
-                    }
-                }
-            ]
-        }
-    });
-    
-    const headers = [
-        ['業務員代碼', '通訊處', '姓名', '包序號', '志願序', '推動規劃', '人員經營管理及跟催機制', '經營目標', '總召業務員代碼', '團隊成員業務員代碼', '選擇時間']
-    ];
-    
-    await sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range: '報名結果!A1',
-        valueInputOption: 'RAW',
-        requestBody: { values: headers }
-    });
+    // This is now handled in a batch within saveAllSelections to be more efficient
 }
 
 export async function clearUserRegistrations(salesCode: string) {
-    // Note: Deleting rows in Google Sheets is complex. 
-    // For this simple survey, we'll allow multiple entries or just keep appending and the "latest" wins in stats.
-    // Or we could fetch everything, filter, and overwrite. 
-    // Overwriting a whole sheet is safer for small counts.
-    
-    const regs = await getRegistrations();
-    const filtered = regs.filter(r => r.業務員代碼 !== salesCode);
-    
-    const sheets = await getGoogleSheetsClient();
-    const headers = [['業務員代碼', '通訊處', '姓名', '包序號', '志願序', '推動規劃', '人員經營管理及跟催機制', '經營目標', '總召業務員代碼', '團隊成員業務員代碼', '選擇時間']];
-    const values = filtered.map(r => [
-        r.業務員代碼, r.通訊處, r.姓名, r.包序號, r.志願序, r.推動規劃, r.人員經營管理及跟催機制, r.經營目標, r.總召業務員代碼, r.團隊成員業務員代碼.join(','), r.選擇時間
-    ]);
+    // This is handled as part of the saveAllSelections transaction in GAS
+}
 
-    await sheets.spreadsheets.values.clear({ spreadsheetId, range: '報名結果!A:K' });
-    await sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range: '報名結果!A1',
-        valueInputOption: 'USER_ENTERED',
-        requestBody: { values: [...headers, ...values] }
+/**
+ * Batch save all selections for a user
+ */
+export async function saveAllSelections(salesCode: string, selections: any[]) {
+    const res = await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+            token: SECRET_TOKEN,
+            action: 'saveRegistration',
+            salesCode,
+            selections: selections.map(s => ({
+                業務員代碼: s.業務員代碼,
+                通訊處: s.通訊處,
+                姓名: s.姓名,
+                包序號: s.packageId,
+                志願序: s.priority,
+                推動規劃: s.promoPlan,
+                人員經營管理及跟催機制: s.mgmtMechanism,
+                經營目標: s.target,
+                總召業務員代碼: s.convener,
+                團隊成員業務員代碼: s.teamMembers.join(','),
+                選擇時間: new Date().toISOString()
+            }))
+        })
     });
+    
+    if (!res.ok) throw new Error('GAS Bridge Error: Failed to save registrations');
+    return await res.json();
 }

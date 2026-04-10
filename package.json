@@ -11,7 +11,6 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.103.0",
     "cookie": "latest",
-    "googleapis": "^171.4.0",
     "lucide-react": "latest",
     "next": "latest",
     "react": "latest",

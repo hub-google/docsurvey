@@ -3,10 +3,9 @@ import { getRegistrations, getExcelData } from '@/lib/data';
 import * as XLSX from 'xlsx';
 
 export async function GET() {
-  const registrations = await getRegistrations();
-  const { memberData } = await getExcelData();
+  const { registrations, memberData } = await getExcelData();
 
-  if (registrations.length === 0) {
+  if (!registrations || registrations.length === 0) {
     return NextResponse.json({ message: '尚無報名資料' }, { status: 404 });
   }
 
