@@ -36,6 +36,7 @@ export interface Registration {
   總召業務員代碼: string;
   團隊成員業務員代碼: string[];
   選擇時間: string;
+  [key: string]: any;
 }
 
 /**
