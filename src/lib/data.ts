@@ -41,7 +41,12 @@ export interface Registration {
 /**
  * Fetches all source data from Google Sheets via GAS Bridge
  */
-export async function getExcelData() {
+export async function getExcelData(): Promise<{
+  loginData: User[];
+  packageData: Package[];
+  memberData: Member[];
+  registrations: Registration[];
+}> {
   const res = await fetch(`${GAS_URL}?action=getData&token=${SECRET_TOKEN}`, {
     method: 'GET',
     headers: { 'Cache-Control': 'no-cache' }
@@ -59,6 +64,7 @@ export async function getExcelData() {
       建議經營團隊人數: parseInt(p.建議經營團隊人數) 
     })) as Package[],
     memberData: data.memberData as Member[],
+    registrations: data.registrations as Registration[],
   };
 }
 

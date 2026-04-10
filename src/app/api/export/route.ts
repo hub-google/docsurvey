@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getRegistrations, getExcelData } from '@/lib/data';
+import { getExcelData, Registration } from '@/lib/data';
 import * as XLSX from 'xlsx';
 
 export async function GET() {
@@ -10,22 +10,22 @@ export async function GET() {
   }
 
   // Group by Office
-  const offices = [...new Set(registrations.map((r) => r.通訊處))];
+  const offices = [...new Set(registrations.map((r: Registration) => r.通訊處))];
 
   const workbook = XLSX.utils.book_new();
 
-  offices.forEach((office) => {
-    const officeRegs = registrations.filter((r) => r.通訊處 === office);
+  offices.forEach((office: string) => {
+    const officeRegs = registrations.filter((r: Registration) => r.通訊處 === office);
     
     // Create rows for the worksheet following the template
     const rows: any[][] = [];
 
-    officeRegs.forEach((reg) => {
+    officeRegs.forEach((reg: Registration) => {
       // Find member names for Convener and Team
       const convener = memberData.find(m => m.業務員代碼 === reg.總召業務員代碼);
       const convenerText = convener ? `${convener.姓名} (${convener.職級})` : reg.總召業務員代碼;
       
-      const teamText = reg.團隊成員業務員代碼.map(code => {
+      const teamText = reg.團隊成員業務員代碼.map((code: string) => {
           const m = memberData.find(mem => mem.業務員代碼 === code);
           return m ? `${m.姓名} (${m.職級})` : code;
       }).join(', ');

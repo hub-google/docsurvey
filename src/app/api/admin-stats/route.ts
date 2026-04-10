@@ -1,3 +1,6 @@
+import { NextResponse } from 'next/server';
+import { getExcelData } from '@/lib/data';
+
 export async function GET() {
   const { loginData, registrations } = await getExcelData();
   
