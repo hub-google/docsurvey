@@ -36,20 +36,25 @@ export default function SelectionPage() {
       .then((d) => {
         setData(d);
         if (d.previousSubmissions && d.previousSubmissions.length > 0) {
-          const prev = d.previousSubmissions; 
+          const first = d.previousSubmissions[0];
+          
+          // Parse newly formatted comma-separated strings
+          const savedPackageIds = String(first.包序號 || '').split(',').map(s => s.trim()).filter(Boolean);
+          const savedPriorities = String(first.志願序 || '').split(',').map(s => s.trim()).filter(Boolean);
+          
           const newSelectedIds: string[] = [];
           const newPriorityMap: Record<string, string> = {};
           
-          prev.forEach((sub: any) => {
-            const pkgId = String(sub.包序號);
+          savedPackageIds.forEach((pkgId, idx) => {
             newSelectedIds.push(pkgId);
-            newPriorityMap[pkgId] = String(sub.志願序);
+            if (savedPriorities[idx]) {
+              newPriorityMap[pkgId] = savedPriorities[idx];
+            }
           });
           
           setSelectedIds(newSelectedIds);
           setPriorityMap(newPriorityMap);
           
-          const first = prev[0];
           setDetails({
              promoPlan: first.推動規劃 || '',
              mgmtMechanism: first.人員經營管理及跟催機制 || '',
@@ -102,46 +107,60 @@ export default function SelectionPage() {
     setDetails({ ...details, [field]: value });
   };
 
-  const handleSubmit = async () => {
-    if (selectedIds.length !== 3) {
-      setError('必須勾選三項包序號作為志願');
-      return;
-    }
+  const handleSave = async (isDraft: boolean) => {
+    if (!isDraft) {
+      if (selectedIds.length !== 3) {
+        setError('必須勾選三項包序號作為志願');
+        return;
+      }
 
-    const priorities = selectedIds.map(id => parseInt(priorityMap[id]));
-    if (priorities.some(p => isNaN(p))) {
-      setError('請為勾選的項目完整選擇志願序 (1, 2, 3)');
-      return;
-    }
-    if (new Set(priorities).size !== 3) {
-      setError('志願序不能重複');
-      return;
-    }
+      const priorities = selectedIds.map(id => parseInt(priorityMap[id]));
+      if (priorities.some(p => isNaN(p))) {
+        setError('請為勾選的項目完整選擇志願序 (1, 2, 3)');
+        return;
+      }
+      if (new Set(priorities).size !== 3) {
+        setError('志願序不能重複');
+        return;
+      }
 
-    if (!details.promoPlan || !details.mgmtMechanism || !details.target || !details.convener) {
-      setError('請填寫所有報名資訊欄位並選擇總召');
-      return;
+      if (!details.promoPlan || !details.mgmtMechanism || !details.target || !details.convener) {
+        setError('請填寫所有報名資訊欄位並選擇總召');
+        return;
+      }
+      if (details.teamMembers.length === 0) {
+        setError('請至少勾選一位團隊成員');
+        return;
+      }
     }
 
     setSubmitting(true);
     setError('');
 
-    const selections = selectedIds.map(id => ({
-      priority: parseInt(priorityMap[id]),
-      packageId: id,
-      ...details
-    }));
+    // Combine format into one single record
+    const combinedPackageIds = selectedIds.join(',');
+    const combinedPriorities = selectedIds.map(id => priorityMap[id] || '').join(',');
+
+    const combinedSelection = {
+      packageId: combinedPackageIds,
+      priority: combinedPriorities,
+      promoPlan: details.promoPlan,
+      mgmtMechanism: details.mgmtMechanism,
+      target: details.target,
+      convener: details.convener,
+      teamMembers: details.teamMembers
+    };
 
     try {
       const res = await fetch('/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ selections }),
+        body: JSON.stringify({ selections: [combinedSelection], isDraft }),
       });
 
       if (res.ok) {
-        alert('報名成功！');
-        router.push('/login'); // Assuming no separate admin route for standard users
+        alert(isDraft ? '已暫存報名資料！' : '報名成功！');
+        if (!isDraft) router.push('/login');
       } else {
         const d = await res.json();
         setError(d.message || '提交失敗');
@@ -257,9 +276,28 @@ export default function SelectionPage() {
           </div>
         </div>
         
-        <div style={{ textAlign: 'center', paddingBottom: '5rem' }}>
-          {error && <div style={{ color: '#ef4444', marginBottom: '1.5rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px' }}>{error}</div>}
-          <button className="btn-primary" style={{ fontSize: '1.25rem', padding: '1.2rem 5rem', width: '100%', maxWidth: '400px' }} disabled={submitting} onClick={handleSubmit}>{submitting ? '提交中...' : '確認報名提交'}</button>
+        <div style={{ textAlign: 'center', paddingBottom: '5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+          {error && <div style={{ color: '#ef4444', marginBottom: '0.5rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px' }}>{error}</div>}
+          
+          <div style={{ display: 'flex', gap: '1rem', width: '100%', maxWidth: '400px', flexDirection: 'column' }}>
+            <button 
+              className="btn-primary" 
+              style={{ fontSize: '1.25rem', padding: '1.2rem', width: '100%' }} 
+              disabled={submitting} 
+              onClick={() => handleSave(false)}
+            >
+              {submitting ? '提交中...' : '確認報名提交'}
+            </button>
+
+            <button 
+              className="btn-primary" 
+              style={{ fontSize: '1.1rem', padding: '1rem', width: '100%', background: '#475569' }} 
+              disabled={submitting} 
+              onClick={() => handleSave(true)}
+            >
+              暫存草稿 (不必完整填寫)
+            </button>
+          </div>
         </div>
       </div>
 

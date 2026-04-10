@@ -9,17 +9,10 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { selections } = body;
+  const { selections, isDraft } = body;
 
-  if (!selections || selections.length !== 3) {
-    return NextResponse.json({ message: '必須勾選三項' }, { status: 400 });
-  }
-
-  // Check unique priorities
-  const priorities = selections.map((s: any) => s.priority);
-  const uniquePriorities = new Set(priorities);
-  if (uniquePriorities.size !== 3 || !priorities.every((p: number) => [1, 2, 3].includes(p))) {
-    return NextResponse.json({ message: '志願序必須為 1, 2, 3 且不能重複' }, { status: 400 });
+  if (!selections || selections.length === 0) {
+    return NextResponse.json({ message: '無效的資料格式' }, { status: 400 });
   }
 
   // Batch save all selections via GAS Bridge
@@ -32,5 +25,5 @@ export async function POST(request: Request) {
 
   await saveAllSelections(user.業務員代碼, enrichedSelections);
 
-  return NextResponse.json({ message: '提交成功' });
+  return NextResponse.json({ message: isDraft ? '草稿儲存成功' : '提交成功' });
 }

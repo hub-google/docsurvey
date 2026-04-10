@@ -41,7 +41,7 @@ export default function LoginPage() {
 
   const handleAdminAuth = (e: React.FormEvent) => {
     e.preventDefault();
-    if (adminCode === 'admin2026') { // Hardcoded simple auth for UI protection
+    if (adminCode === '03434016') { // Hardcoded simple auth for UI protection
        setMode('admin_dashboard');
        fetchAdminStats();
     } else {
