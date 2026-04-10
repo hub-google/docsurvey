@@ -33,9 +33,9 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('Login API error:', error);
     return NextResponse.json({ 
-      message: '伺服器內部錯誤', 
-      debug: error.message,
-      stack: error.stack 
+      message: '伺服器內部錯誤 (Debug: ' + error.message + ')', 
+      detail: error.toString(),
+      stack: error.stack?.split('\n').slice(0, 3).join('\n')
     }, { status: 500 });
   }
 }
