@@ -196,7 +196,7 @@ export default function SelectionPage() {
                 <th style={{ padding: '0.75rem' }}>包序號</th>
                 <th style={{ padding: '0.75rem' }}>建議人數</th>
                 <th style={{ padding: '0.75rem' }}>志願序</th>
-                <th style={{ padding: '0.75rem' }}>職域內容</th>
+                <th style={{ padding: '0.75rem' }}>職域數</th>
               </tr>
             </thead>
             <tbody>
@@ -226,7 +226,7 @@ export default function SelectionPage() {
                       <option value="3">3</option>
                     </select>
                   </td>
-                  <td style={{ padding: '0.75rem' }}>{pkg.items.length} 個職域資料</td>
+                  <td style={{ padding: '0.75rem' }}>{pkg.items.length}</td>
                 </tr>
               ))}
             </tbody>
