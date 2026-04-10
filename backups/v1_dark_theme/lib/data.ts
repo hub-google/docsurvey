@@ -107,7 +107,7 @@ export async function saveAllSelections(salesCode: string, selections: any[]) {
                 經營目標: s.target,
                 總召業務員代碼: s.convener,
                 團隊成員業務員代碼: s.teamMembers.join(','),
-                選擇時間: new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', hour12: false })
+                選擇時間: new Date().toISOString()
             }))
         })
     });
