@@ -9,8 +9,11 @@ export default function SelectionPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
-  // Revised State: 3 package picks + 1 shared details object
-  const [packagePicks, setPackagePicks] = useState<string[]>(['', '', '']);
+  // Selection states
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [priorityMap, setPriorityMap] = useState<Record<string, string>>({});
+  
+  // Single shared details object
   const [details, setDetails] = useState({
     promoPlan: '',
     mgmtMechanism: '',
@@ -32,6 +35,29 @@ export default function SelectionPage() {
       })
       .then((d) => {
         setData(d);
+        if (d.previousSubmissions && d.previousSubmissions.length > 0) {
+          const prev = d.previousSubmissions; 
+          const newSelectedIds: string[] = [];
+          const newPriorityMap: Record<string, string> = {};
+          
+          prev.forEach((sub: any) => {
+            const pkgId = String(sub.包序號);
+            newSelectedIds.push(pkgId);
+            newPriorityMap[pkgId] = String(sub.志願序);
+          });
+          
+          setSelectedIds(newSelectedIds);
+          setPriorityMap(newPriorityMap);
+          
+          const first = prev[0];
+          setDetails({
+             promoPlan: first.推動規劃 || '',
+             mgmtMechanism: first.人員經營管理及跟催機制 || '',
+             target: first.經營目標 || '',
+             convener: String(first.總召業務員代碼 || ''),
+             teamMembers: first.團隊成員業務員代碼 ? String(first.團隊成員業務員代碼).split(',').map(s => s.trim()).filter(Boolean) : []
+          });
+        }
         setLoading(false);
       })
       .catch(() => router.push('/login'));
@@ -52,10 +78,24 @@ export default function SelectionPage() {
 
   const groupedPackages = getGroupedPackages();
 
-  const handlePickChange = (index: number, value: string) => {
-    const nextPicks = [...packagePicks];
-    nextPicks[index] = value;
-    setPackagePicks(nextPicks);
+  const togglePackage = (id: string) => {
+    const strId = String(id);
+    if (selectedIds.includes(strId)) {
+      setSelectedIds(selectedIds.filter(i => i !== strId));
+      const newMap = { ...priorityMap };
+      delete newMap[strId];
+      setPriorityMap(newMap);
+    } else {
+      if (selectedIds.length >= 3) {
+        alert('最多只能勾選三項志願');
+        return;
+      }
+      setSelectedIds([...selectedIds, strId]);
+    }
+  };
+
+  const updatePriority = (id: string, value: string) => {
+    setPriorityMap({ ...priorityMap, [String(id)]: value });
   };
 
   const updateDetail = (field: string, value: any) => {
@@ -63,25 +103,31 @@ export default function SelectionPage() {
   };
 
   const handleSubmit = async () => {
-    if (packagePicks.some(p => !p)) {
-      setError('請填滿三個志願的包序號');
+    if (selectedIds.length !== 3) {
+      setError('必須勾選三項包序號作為志願');
       return;
     }
-    if (new Set(packagePicks).size !== 3) {
-      setError('三個志願的包序號不能重複');
+
+    const priorities = selectedIds.map(id => parseInt(priorityMap[id]));
+    if (priorities.some(p => isNaN(p))) {
+      setError('請為勾選的項目完整選擇志願序 (1, 2, 3)');
       return;
     }
-    if (!details.promoPlan || !details.convener) {
-      setError('請填寫所有詳情欄位並選擇總召');
+    if (new Set(priorities).size !== 3) {
+      setError('志願序不能重複');
+      return;
+    }
+
+    if (!details.promoPlan || !details.mgmtMechanism || !details.target || !details.convener) {
+      setError('請填寫所有報名資訊欄位並選擇總召');
       return;
     }
 
     setSubmitting(true);
     setError('');
 
-    // Transform to the format expected by the API (3 records with shared details)
-    const selections = packagePicks.map((id, index) => ({
-      priority: index + 1,
+    const selections = selectedIds.map(id => ({
+      priority: parseInt(priorityMap[id]),
       packageId: id,
       ...details
     }));
@@ -95,7 +141,7 @@ export default function SelectionPage() {
 
       if (res.ok) {
         alert('報名成功！');
-        router.push('/admin');
+        router.push('/login'); // Assuming no separate admin route for standard users
       } else {
         const d = await res.json();
         setError(d.message || '提交失敗');
@@ -111,27 +157,26 @@ export default function SelectionPage() {
 
   return (
     <div className="container fade-in">
-      {/* Header with Admin shortcut */}
       <div className="glass" style={{ padding: '2rem', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 style={{ color: 'var(--primary)' }}>{data.user.姓名} ({data.user.業務員代碼})</h2>
           <p style={{ color: 'var(--text-muted)' }}>{data.user.區域中心} - {data.user.通訊處}</p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button onClick={() => router.push('/admin')} className="btn-primary" style={{ background: '#059669' }}>管理後台</button>
           <button onClick={() => router.push('/login')} className="btn-primary" style={{ background: '#475569' }}>登出</button>
         </div>
       </div>
 
-      {/* Package Reference */}
       <div className="glass" style={{ padding: '1.5rem', marginBottom: '2.5rem' }}>
-        <h3 style={{ marginBottom: '1rem' }}>包序號參考清單 (點選編號看詳情)</h3>
+        <h3 style={{ marginBottom: '1rem' }}>請勾選三個報名項目並選擇志願序 (點選編號看詳情)</h3>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
             <thead>
               <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--glass-border)' }}>
+                <th style={{ padding: '0.75rem' }}>勾選</th>
                 <th style={{ padding: '0.75rem' }}>包序號</th>
                 <th style={{ padding: '0.75rem' }}>建議人數</th>
+                <th style={{ padding: '0.75rem' }}>志願序</th>
                 <th style={{ padding: '0.75rem' }}>職域內容</th>
               </tr>
             </thead>
@@ -139,9 +184,29 @@ export default function SelectionPage() {
               {groupedPackages.map((pkg: any) => (
                 <tr key={pkg.包序號} style={{ borderBottom: '1px solid var(--glass-border)' }}>
                   <td style={{ padding: '0.75rem' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedIds.includes(String(pkg.包序號))}
+                      onChange={() => togglePackage(pkg.包序號)}
+                    />
+                  </td>
+                  <td style={{ padding: '0.75rem' }}>
                     <button onClick={() => setModalPackage(pkg)} style={{ background: 'transparent', color: 'var(--primary)', textDecoration: 'underline', padding: 0 }}>{pkg.包序號}</button>
                   </td>
                   <td style={{ padding: '0.75rem' }}>{pkg.建議經營團隊人數}</td>
+                  <td style={{ padding: '0.75rem' }}>
+                    <select 
+                      disabled={!selectedIds.includes(String(pkg.包序號))}
+                      value={priorityMap[String(pkg.包序號)] || ''}
+                      onChange={(e) => updatePriority(pkg.包序號, e.target.value)}
+                      style={{ padding: '4px 8px' }}
+                    >
+                      <option value="">請選擇</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                    </select>
+                  </td>
                   <td style={{ padding: '0.75rem' }}>{pkg.items.length} 個職域資料</td>
                 </tr>
               ))}
@@ -151,33 +216,8 @@ export default function SelectionPage() {
       </div>
 
       <div className="fade-in">
-        <h2 style={{ marginBottom: '1.5rem', color: 'var(--accent)', textAlign: 'center' }}>報名資料填寫</h2>
-        
-        {/* Step 1: Priority Selection */}
         <div className="glass" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
-          <h4 style={{ marginBottom: '1.5rem', borderLeft: '4px solid #fbbf24', paddingLeft: '1rem' }}>志願選擇</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {[0, 1, 2].map(idx => (
-              <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>第 {idx + 1} 志願</label>
-                <select 
-                  value={packagePicks[idx]} 
-                  onChange={e => handlePickChange(idx, e.target.value)}
-                  style={{ width: '100%', padding: '12px' }}
-                >
-                  <option value="">-- 請選擇包序號 --</option>
-                  {groupedPackages.map((pkg: any) => (
-                    <option key={pkg.包序號} value={pkg.包序號}>包序號: {pkg.包序號}</option>
-                  ))}
-                </select>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Step 2: Shared Details */}
-        <div className="glass" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
-          <h4 style={{ marginBottom: '1.5rem', borderLeft: '4px solid var(--primary)', paddingLeft: '1rem' }}>詳細資料 (僅需填寫一次)</h4>
+          <h4 style={{ marginBottom: '1.5rem', borderLeft: '4px solid var(--primary)', paddingLeft: '1rem', fontSize: '1.25rem' }}>報名資訊</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <label style={{ fontWeight: 600 }}>推動規劃</label>
@@ -204,9 +244,9 @@ export default function SelectionPage() {
               <label style={{ fontWeight: 600 }}>團隊成員 (可多選)</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '250px', overflowY: 'auto', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
                 {data.members.map((m: any) => (
-                  <label key={m.業務員代碼} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', padding: '10px', borderRadius: '4px', fontSize: '1rem', background: details.teamMembers.includes(m.業務員代碼) ? 'rgba(14, 165, 233, 0.2)' : 'transparent', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <input type="checkbox" checked={details.teamMembers.includes(m.業務員代碼)} onChange={e => {
-                      const next = e.target.checked ? [...details.teamMembers, m.業務員代碼] : details.teamMembers.filter(c => c !== m.業務員代碼);
+                  <label key={m.業務員代碼} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', padding: '10px', borderRadius: '4px', fontSize: '1rem', background: details.teamMembers.includes(String(m.業務員代碼)) ? 'rgba(14, 165, 233, 0.2)' : 'transparent', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <input type="checkbox" checked={details.teamMembers.includes(String(m.業務員代碼))} onChange={e => {
+                      const next = e.target.checked ? [...details.teamMembers, String(m.業務員代碼)] : details.teamMembers.filter(c => c !== String(m.業務員代碼));
                       updateDetail('teamMembers', next);
                     }} />
                     <span>{m.姓名} ({m.職級})</span>

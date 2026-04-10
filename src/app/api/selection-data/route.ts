@@ -9,7 +9,7 @@ export async function GET() {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const { packageData, memberData } = await getExcelData();
+  const { packageData, memberData, registrations } = await getExcelData();
 
   // Filter packages by user's regional center
   const filteredPackages = packageData.filter(
@@ -21,9 +21,14 @@ export async function GET() {
     (m) => m.通訊處 === user.通訊處
   );
 
+  const userSubmissions = (registrations || []).filter(
+    (r: any) => String(r.業務員代碼) === String(user.業務員代碼)
+  );
+
   return NextResponse.json({
     user,
     packages: filteredPackages,
     members: filteredMembers,
+    previousSubmissions: userSubmissions,
   });
 }
