@@ -51,7 +51,7 @@ export default async function PrintReportPage() {
             
             {officeRegs.map((reg, rIdx) => {
               const convenerCode = String(reg.總召業務員代碼 || '').trim();
-              const convener = memberData.find(m => String(m.業務員代碼) === convenerCode);
+              const convener = memberData.find(m => String(m.業務員代碼) === convenerCode || String(m.姓名).trim() === convenerCode);
               const convenerText = convener ? `${convener.姓名} (${convener.職級})` : convenerCode;
               
               // Resolve teams based on comma-separated code string

@@ -15,7 +15,8 @@ export async function GET() {
     const worksheet = XLSX.utils.json_to_sheet(registrations);
     XLSX.utils.book_append_sheet(workbook, worksheet, '使用者選擇結果');
 
-    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    const b64 = XLSX.write(workbook, { type: 'base64', bookType: 'xlsx' });
+    const buffer = typeof Buffer !== 'undefined' ? Buffer.from(b64, 'base64') : Uint8Array.from(atob(b64), c => c.charCodeAt(0));
 
     return new NextResponse(buffer, {
       headers: {
