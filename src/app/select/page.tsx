@@ -228,10 +228,10 @@ export default function SelectionPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <label style={{ fontWeight: 600 }}>團隊成員 (可多選)</label>
                 <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', 
+                  display: 'flex',
+                  flexDirection: 'column',
                   gap: '0.5rem', 
-                  maxHeight: '200px', 
+                  maxHeight: '250px', 
                   overflowY: 'auto',
                   padding: '1rem',
                   background: 'rgba(0,0,0,0.2)',
@@ -242,13 +242,14 @@ export default function SelectionPage() {
                     <label key={m.業務員代碼} style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
-                      gap: '0.5rem', 
+                      gap: '0.75rem', 
                       cursor: 'pointer',
-                      padding: '6px',
+                      padding: '10px',
                       borderRadius: '4px',
-                      fontSize: '0.9rem',
+                      fontSize: '1rem',
                       transition: 'background 0.2s',
-                      background: item.teamMembers.includes(m.業務員代碼) ? 'rgba(14, 165, 233, 0.2)' : 'transparent'
+                      background: item.teamMembers.includes(m.業務員代碼) ? 'rgba(14, 165, 233, 0.2)' : 'transparent',
+                      borderBottom: '1px solid rgba(255,255,255,0.05)'
                     }}>
                       <input 
                         type="checkbox" 
@@ -261,7 +262,7 @@ export default function SelectionPage() {
                           updateSelection(idx, 'teamMembers', next);
                         }}
                       />
-                      <span>{m.姓名}</span>
+                      <span>{m.姓名} ({m.職級})</span>
                     </label>
                   ))}
                 </div>
