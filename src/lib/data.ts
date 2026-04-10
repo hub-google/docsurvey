@@ -47,9 +47,15 @@ export async function getExcelData(): Promise<{
   memberData: Member[];
   registrations: Registration[];
 }> {
-  const res = await fetch(`${GAS_URL}?action=getData&token=${SECRET_TOKEN}`, {
+  // Add timestamp to bypass any intermediate caches
+  const timestamp = Date.now();
+  const res = await fetch(`${GAS_URL}?action=getData&token=${SECRET_TOKEN}&_t=${timestamp}`, {
     method: 'GET',
-    headers: { 'Cache-Control': 'no-cache' }
+    cache: 'no-store', // Next.js: do not cache this request
+    headers: { 
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache'
+    }
   });
   
   if (!res.ok) throw new Error('GAS Bridge Error: Failed to fetch data');
