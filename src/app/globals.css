@@ -1,12 +1,12 @@
 :root {
-  --primary: #0ea5e9;
-  --primary-hover: #0284c7;
-  --bg: #0f172a;
-  --card-bg: rgba(30, 41, 59, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --text: #f8fafc;
-  --text-muted: #94a3b8;
-  --accent: #f59e0b;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg: #f8fafc;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --accent: #d97706;
   --radius: 12px;
 }
 
@@ -18,7 +18,7 @@
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: radial-gradient(circle at top right, #1e293b, #0f172a);
+  background: radial-gradient(circle at top right, #f1f5f9, #f8fafc);
   color: var(--text);
   line-height: 1.5;
   min-height: 100vh;
@@ -45,7 +45,7 @@ a:hover {
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 button {
@@ -65,7 +65,7 @@ button {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
 .btn-primary:active {
@@ -73,19 +73,19 @@ button {
 }
 
 input, select, textarea {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid var(--glass-border);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius);
   padding: 10px 14px;
   color: var(--text);
   font-size: 1rem;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
 }
 
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary);
-  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .container {
@@ -118,22 +118,23 @@ input[type="checkbox"] {
   width: 100%;
   height: 100vh;
   height: 100dvh;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
-  align-items: flex-start; /* Changed from center to prevent top clipping on small screens */
+  align-items: flex-start;
   justify-content: center;
   z-index: 9999;
   backdrop-filter: blur(4px);
   padding: 2rem 1rem;
-  overflow-y: auto; /* Allow scrolling the entire overlay if content is tall */
+  overflow-y: auto;
 }
 
 .modal-content {
   width: 100%;
   max-width: 800px;
-  background: #1e293b;
+  background: #ffffff;
   padding: 2rem 1.5rem;
   border-radius: var(--radius);
-  margin: auto; /* Center it using margin auto within flex container */
+  margin: auto;
   position: relative;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }

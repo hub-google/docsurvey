@@ -86,7 +86,7 @@ export default function LoginPage() {
                 {stats.overallRate.toFixed(1)}%
               </div>
               <p style={{ marginTop: '0.5rem' }}>{stats.filledUsers} / {stats.totalUsers}</p>
-              <div style={{ background: 'rgba(255,255,255,0.1)', height: '8px', borderRadius: '4px', marginTop: '1.5rem', overflow: 'hidden' }}>
+              <div style={{ background: 'rgba(0,0,0,0.05)', height: '8px', borderRadius: '4px', marginTop: '1.5rem', overflow: 'hidden' }}>
                 <div style={{ background: 'var(--primary)', height: '100%', width: `${stats.overallRate}%`, transition: 'width 1s ease-out' }}></div>
               </div>
             </div>
@@ -102,7 +102,7 @@ export default function LoginPage() {
                         <span>{region}</span>
                         <span>{s.filled} / {s.total} ({rate.toFixed(1)}%)</span>
                       </div>
-                      <div style={{ background: 'rgba(255,255,255,0.1)', height: '6px', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ background: 'rgba(0,0,0,0.05)', height: '6px', borderRadius: '3px', overflow: 'hidden' }}>
                         <div style={{ background: 'var(--primary)', opacity: 0.8, height: '100%', width: `${rate}%` }}></div>
                       </div>
                     </div>
@@ -142,7 +142,7 @@ export default function LoginPage() {
                 <li><strong>備妥計劃書內容：</strong> 為避免網頁停留時間過長導致操作中斷，請於填寫前先將「經營計劃書」定稿，以利快速完成填寫作業。</li>
               </ol>
 
-              <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '1rem', marginTop: '1rem' }}>
+              <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '1rem', marginTop: '1rem' }}>
                 <p><strong>專案聯絡窗口：</strong></p>
                 <p>聯絡人：温婓娜 #6693</p>
               </div>
@@ -184,7 +184,7 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <div style={{ marginTop: '2rem', textAlign: 'center', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
+            <div style={{ marginTop: '2rem', textAlign: 'center', borderTop: '1px solid #e2e8f0', paddingTop: '1.5rem' }}>
               <button 
                 onClick={() => { setMode('admin_auth'); setError(''); }}
                 style={{ background: 'transparent', color: 'var(--text-muted)', fontSize: '0.875rem', textDecoration: 'underline' }}

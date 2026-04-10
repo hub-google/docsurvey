@@ -261,9 +261,9 @@ export default function SelectionPage() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <label style={{ fontWeight: 600 }}>團隊成員 (可多選)</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '250px', overflowY: 'auto', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '250px', overflowY: 'auto', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                 {data.members.map((m: any) => (
-                  <label key={m.業務員代碼} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', padding: '10px', borderRadius: '4px', fontSize: '1rem', background: details.teamMembers.includes(String(m.業務員代碼)) ? 'rgba(14, 165, 233, 0.2)' : 'transparent', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <label key={m.業務員代碼} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', padding: '10px', borderRadius: '4px', fontSize: '1rem', background: details.teamMembers.includes(String(m.業務員代碼)) ? 'rgba(37, 99, 235, 0.1)' : 'transparent', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
                     <input type="checkbox" checked={details.teamMembers.includes(String(m.業務員代碼))} onChange={e => {
                       const next = e.target.checked ? [...details.teamMembers, String(m.業務員代碼)] : details.teamMembers.filter(c => c !== String(m.業務員代碼));
                       updateDetail('teamMembers', next);
@@ -311,7 +311,7 @@ export default function SelectionPage() {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
-                  <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--primary)', background: 'rgba(255,255,255,0.05)' }}>
+                  <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--primary)', background: 'rgba(0,0,0,0.02)' }}>
                     {Object.keys(modalPackage.items[0]).filter(key => key !== 'items').slice(3).map(key => (
                       <th key={key} style={{ padding: '0.75rem', whiteSpace: 'nowrap' }}>{key}</th>
                     ))}
